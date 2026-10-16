@@ -567,18 +567,18 @@
       // વાઈફાઈ SSID
       if (data.wifi_ssid && document.activeElement !== document.getElementById('wfSsid')) {
         document.getElementById('wfSsid').value = data.wifi_ssid;
-      }
+      } 
 
       // ઓટો ટાઈમર સેટિંગ્સ
-      if (data.timer_en !== undefined && document.activeElement !== document.getElementById('timerEn')) {
-        document.getElementById('timerEn').checked = data.timer_en;
-        document.getElementById('timerInputsBox').style.display = data.timer_en ? 'block' : 'none';
+        if (!userEditingTimer && data.timer_en !== undefined) {
+        document.getElementById('timerEn').checked = (data.timer_en === true || data.timer_en === "true");
+        document.getElementById('timerInputsBox').style.display = document.getElementById('timerEn').checked ? 'block' : 'none';
       }
-      if (data.on_delay !== undefined && document.activeElement !== document.getElementById('onTimeVal')) {
+      if (!userEditingTimer && data.on_delay !== undefined && document.activeElement !== document.getElementById('onTimeVal')) {
         var od = parseInt(data.on_delay);
         document.getElementById('onTimeVal').value = String(Math.floor(od/3600)).padStart(2,'0') + ":" + String(Math.floor((od%3600)/60)).padStart(2,'0') + ":" + String(od%60).padStart(2,'0');
       }
-      if (data.run_sec !== undefined && document.activeElement !== document.getElementById('runTimeVal')) {
+      if (!userEditingTimer && data.run_sec !== undefined && document.activeElement !== document.getElementById('runTimeVal')) {
         var rs = parseInt(data.run_sec);
         document.getElementById('runTimeVal').value = String(Math.floor(rs/3600)).padStart(2,'0') + ":" + String(Math.floor((rs%3600)/60)).padStart(2,'0') + ":" + String(rs%60).padStart(2,'0');
       }
@@ -659,6 +659,14 @@
   }
 
   // --- ઓટો ટાઈમર સેટિંગ્સ ક્લાઉડ પર સેવ કરવું ---
+  var userEditingTimer = false;
+  function toggleTimerBox() {
+    userEditingTimer = true; // યુઝર એડિટ કરે ત્યારે બેકગ્રાઉન્ડ રીફ્રેશ ચેકબોક્સ નહીં હટાવે
+    var isChecked = document.getElementById('timerEn').checked;
+    document.getElementById('timerInputsBox').style.display = isChecked ? 'block' : 'none';
+  }
+
+  // --- ઓટો ટાઈમર સેટિંગ્સ ક્લાઉડ પર સેવ કરવું ---
   async function saveTimerCloud() {
     if (!activeSerial) { alert("પહેલા ડિવાઇસ પસંદ કરો!"); return; }
     var en = document.getElementById('timerEn').checked;
@@ -673,7 +681,9 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "SET_TIMER", en: en, onDel: onSec, runSec: runSec, timeStamp: Date.now() })
       });
+      userEditingTimer = false;
       alert("✅ ટાઈમર સેટિંગ્સ સફળતાપૂર્વક ક્લાઉડ પર સેવ થઈ ગયા!");
+      fetchFirebaseData(); // તરત નવો ડેટા રિફ્રેશ કરો
     } catch (e) { alert("❌ ભૂલ આવી!"); }
   }
 
