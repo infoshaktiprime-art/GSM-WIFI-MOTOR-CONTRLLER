@@ -164,7 +164,7 @@
       <div style="color:#2979ff;font-size:15px;font-weight:700;margin-bottom:12px;text-align:center;letter-spacing:1px;">⚡ VOLTAGE PROTECTION SETTINGS (415V L-L)</div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
         <label style="font-size:14px;color:#ccc;">Over Voltage Limit (V):</label>
-    <input type="number" id="ovVal" value="460.0" style="width:90px;padding:6px;background:#252632;color:#fff;border:1px solid #555;border-radius:6px;text-align:center;font-size:15px;">
+    <input type="number" id="ovVal" value="460.0" style="width:90px;padding:6px;background:#252632;color:#fff;border:1px solid #555;border-radius:6px;text-align:center;font-size:15px;"> 
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
         <label style="font-size:14px;color:#ccc;">Under Voltage Limit (V):</label>
@@ -188,54 +188,54 @@
         <label style="font-size:14px;color:#ccc;">Dry Run Current Limit (Amp):</label>
         <input type="number" id="dryVal" step="0.1" value="8.0" style="width:90px;padding:6px;background:#252632;color:#fff;border:1px solid #555;border-radius:6px;text-align:center;font-size:15px;">
       </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
         <label style="font-size:14px;color:#ccc;">Dry Run Time (HH:MM:SS):</label>
         <input type="text" id="timeVal" value="00:05:00" style="width:105px;padding:6px;background:#252632;color:#fff;border:1px solid #555;border-radius:6px;text-align:center;font-size:15px;">
       </div>
-      <button type="button" onclick="alert('સેટિંગ્સ સફળતાપૂર્વક સેવ થઈ ગયા!')" style="width:100%;padding:12px;background:#2979ff;color:#fff;font-weight:700;font-size:15px;border:none;border-radius:8px;cursor:pointer;">💾 SAVE SETTINGS</button>
+      <button type="button" onclick="saveCurrentCloud()" style="width:100%;padding:12px;background:#2979ff;color:#fff;font-weight:700;font-size:15px;border:none;border-radius:8px;cursor:pointer;">💾 SAVE CURRENT SETTINGS</button>
     </div>
 
-    <!-- ૬. મોટર સેફ્ટી અને ડાયગ્નોસ્ટિક્સ -->
+    <!-- ૬. મોટર સેફ્ટી અને ડાયગ્નોસ્ટિક્સ --> 
     <div style="background:#131b24;border-radius:10px;padding:14px 18px;max-width:500px;margin:15px auto;width:100%;border-left:5px solid #00e676;box-shadow:0 6px 20px rgba(0,0,0,0.6);">
       <div style="color:#00e676;font-size:15px;font-weight:800;letter-spacing:1px;margin-bottom:12px;">🌊 DEDICATED MOTOR SAFETY & DIAGNOSTICS</div>
       
       <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #222e3c;font-size:13px;">
         <span style="color:#ccc;">⚙️ Motor Health Index:</span>
-        <span style="color:#00e676;font-weight:bold;font-size:14px;">100.0 %</span>
+        <span id="diagHealth" style="color:#00e676;font-weight:bold;font-size:14px;">100.0 %</span>
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #222e3c;font-size:13px;">
         <span style="color:#ccc;">🔌 Motor Cable Status:</span>
-        <span style="color:#00e676;font-weight:bold;">🟢 CONNECTED OK</span>
+        <span id="diagCable" style="color:#00e676;font-weight:bold;">🟢 CONNECTED OK</span>
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #222e3c;font-size:13px;">
         <span style="color:#ccc;">⚡ 3-Phase Supply Status:</span>
-        <span style="color:#00e676;font-weight:bold;">🟢 NORMAL OK</span>
+        <span id="diagSupply" style="color:#00e676;font-weight:bold;">🟢 NORMAL OK</span>
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #222e3c;font-size:13px;">
         <span style="color:#ccc;">🌊 Motor Jam / Short Protection:</span>
-        <span style="color:#00e676;font-weight:bold;">🟢 NORMAL OK</span>
+        <span id="diagJam" style="color:#00e676;font-weight:bold;">🟢 NORMAL OK</span>
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #222e3c;font-size:13px;">
         <span style="color:#ccc;">⚡ Voltage Protection (OV/UV):</span>
-        <span style="color:#00e676;font-weight:bold;">🟢 NORMAL OK</span>
+        <span id="diagVolt" style="color:#00e676;font-weight:bold;">🟢 NORMAL OK</span>
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #222e3c;font-size:13px;">
         <span style="color:#ccc;">🔄 Phase Sequence (R-Y-B):</span>
-        <span style="color:#00e676;font-weight:bold;">🟢 NORMAL OK</span>
+        <span id="diagSeq" style="color:#00e676;font-weight:bold;">🟢 NORMAL OK</span>
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #222e3c;font-size:13px;">
         <span style="color:#ccc;">🔥 Over Current Protection:</span>
-        <span style="color:#00e676;font-weight:bold;">🟢 NORMAL OK</span>
+        <span id="diagOc" style="color:#00e676;font-weight:bold;">🟢 NORMAL OK</span>
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;font-size:13px;">
         <span style="color:#ccc;">💧 Dry Run Protection:</span>
-        <span style="color:#00e676;font-weight:bold;">🟢 NORMAL OK</span>
+        <span id="diagDry" style="color:#00e676;font-weight:bold;">🟢 NORMAL OK</span>
       </div>
     </div>
 
     <!-- RESTART SYSTEM -->
     <div style="background:#171821;padding:15px;border-radius:12px;max-width:500px;margin:15px auto;width:100%;border:1px solid #d50000;box-shadow:0 6px 18px rgba(0,0,0,0.4);text-align:center;">
-      <button type="button" onclick="if(confirm('શું તમે સિસ્ટમ રીસ્ટાર્ટ કરવા માંગો છો?')){alert('સિસ્ટમ રીસ્ટાર્ટ થઈ રહી છે...');}" style="width:100%;padding:12px;background:#d50000;color:#fff;font-weight:bold;font-size:15px;border:none;border-radius:8px;cursor:pointer;">🔄 RESTART SYSTEM (રીસ્ટાર્ટ)</button>
+      <button type="button" onclick="restartCloud()" style="width:100%;padding:12px;background:#d50000;color:#fff;font-weight:bold;font-size:15px;border:none;border-radius:8px;cursor:pointer;">🔄 RESTART SYSTEM (રીસ્ટાર્ટ)</button>
     </div>
 
     <!-- ૭. WI-FI CONFIGURATION -->
@@ -257,7 +257,7 @@
         <label for="togglePass" style="font-size:12px;color:#aaa;cursor:pointer;user-select:none;">👁️ Show Password</label>
       </div>
 
-      <button type="button" onclick="alert('✅ Wi-Fi સેવ થઈ ગયું!')" style="width:100%;padding:12px;background:linear-gradient(90deg, #ff9800, #f57c00);color:#000;font-weight:800;font-size:15px;border:none;border-radius:8px;cursor:pointer;">💾 SAVE WI-FI & RESTART</button>
+      <button type="button" onclick="saveWifiCloud()" style="width:100%;padding:12px;background:linear-gradient(90deg, #ff9800, #f57c00);color:#000;font-weight:800;font-size:15px;border:none;border-radius:8px;cursor:pointer;">💾 SAVE WI-FI & RESTART</button>
     </div>
 
     <!-- ૮. GSM MOBILE CONTROL -->
@@ -267,26 +267,26 @@
 
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
         <label style="font-size:13px;color:#cfd8dc;">Number 1:</label>
-        <input type="text" value="+918460242425" style="width:180px;padding:6px;background:#252632;color:#fff;border:1px solid #555;border-radius:6px;font-size:14px;">
+        <input type="text" id="gsm0" value="" style="width:180px;padding:6px;background:#252632;color:#fff;border:1px solid #555;border-radius:6px;font-size:14px;">
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
         <label style="font-size:13px;color:#cfd8dc;">Number 2:</label>
-        <input type="text" value="" placeholder="નંબર ખાલી રાખો (Delete)" style="width:180px;padding:6px;background:#252632;color:#fff;border:1px solid #555;border-radius:6px;font-size:14px;">
+        <input type="text" id="gsm1" value="" placeholder="નંબર ખાલી રાખો (Delete)" style="width:180px;padding:6px;background:#252632;color:#fff;border:1px solid #555;border-radius:6px;font-size:14px;">
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
         <label style="font-size:13px;color:#cfd8dc;">Number 3:</label>
-        <input type="text" value="" placeholder="નંબર ખાલી રાખો (Delete)" style="width:180px;padding:6px;background:#252632;color:#fff;border:1px solid #555;border-radius:6px;font-size:14px;">
+        <input type="text" id="gsm2" value="" placeholder="નંબર ખાલી રાખો (Delete)" style="width:180px;padding:6px;background:#252632;color:#fff;border:1px solid #555;border-radius:6px;font-size:14px;">
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
         <label style="font-size:13px;color:#cfd8dc;">Number 4:</label>
-        <input type="text" value="" placeholder="નંબર ખાલી રાખો (Delete)" style="width:180px;padding:6px;background:#252632;color:#fff;border:1px solid #555;border-radius:6px;font-size:14px;">
+        <input type="text" id="gsm3" value="" placeholder="નંબર ખાલી રાખો (Delete)" style="width:180px;padding:6px;background:#252632;color:#fff;border:1px solid #555;border-radius:6px;font-size:14px;">
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
         <label style="font-size:13px;color:#cfd8dc;">Number 5:</label>
-        <input type="text" value="" placeholder="નંબર ખાલી રાખો (Delete)" style="width:180px;padding:6px;background:#252632;color:#fff;border:1px solid #555;border-radius:6px;font-size:14px;">
+        <input type="text" id="gsm4" value="" placeholder="નંબર ખાલી રાખો (Delete)" style="width:180px;padding:6px;background:#252632;color:#fff;border:1px solid #555;border-radius:6px;font-size:14px;">
       </div>
 
-      <button type="button" onclick="alert('✅ GSM Numbers Updated Successfully!')" style="width:100%;padding:12px;background:#e91e63;color:#fff;font-weight:800;font-size:14px;border:none;border-radius:8px;cursor:pointer;margin-top:10px;">💾 SAVE / UPDATE NUMBERS</button>
+      <button type="button" onclick="saveGsmCloud()" style="width:100%;padding:12px;background:#e91e63;color:#fff;font-weight:800;font-size:14px;border:none;border-radius:8px;cursor:pointer;margin-top:10px;">💾 SAVE / UPDATE NUMBERS</button>
     </div>
 
     <!-- ૯. AUTO DELAY & RUN TIMER -->
@@ -294,11 +294,11 @@
       <div style="color:#00bcd4;font-size:16px;font-weight:800;margin-bottom:14px;text-align:center;letter-spacing:1px;">⏰ AUTO DELAY & RUN TIMER (ઓટો ટાઈમર)</div>
 
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:15px;background:#252632;padding:10px;border-radius:8px;">
-        <input type="checkbox" id="timerEn" onchange="toggleTimerBox()" checked style="width:18px;height:18px;cursor:pointer;">
+        <input type="checkbox" id="timerEn" onchange="toggleTimerBox()" style="width:18px;height:18px;cursor:pointer;">
         <label for="timerEn" style="font-size:14px;color:#fff;font-weight:bold;cursor:pointer;">Enable Timer (ટાઈમર ચાલુ કરો)</label>
       </div>
 
-      <div id="timerInputsBox" style="display:block;">
+      <div id="timerInputsBox" style="display:none;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
           <label style="font-size:14px;color:#cfd8dc;font-weight:600;">Power-ON Delay (HH:MM:SS):</label>
           <input type="text" id="onTimeVal" value="00:01:00" style="width:105px;padding:8px;background:#252632;color:#fff;border:1px solid #555;border-radius:8px;text-align:center;font-size:14px;">
@@ -311,14 +311,14 @@
 
         <div style="background:#1b2a32;border:1px dashed #00bcd4;padding:12px;border-radius:8px;margin-bottom:15px;text-align:center;">
           <div style="font-size:13px;color:#00bcd4;font-weight:bold;margin-bottom:4px;">⏳ TIMER LEFT (બાકી સમય):</div>
-          <div style="font-size:22px;color:#ffffff;font-weight:900;letter-spacing:1.5px;">01:45:20</div>
+          <div id="timerLeftDisplay" style="font-size:22px;color:#ffffff;font-weight:900;letter-spacing:1.5px;">00:00:00</div>
         </div>
       </div>
 
-      <button type="button" onclick="alert('✅ ટાઈમર સેટિંગ્સ સફળતાપૂર્વક સેવ થઈ ગયા!')" style="width:100%;padding:12px;background:linear-gradient(90deg, #00bcd4, #0097a7);color:#000;font-weight:800;font-size:15px;border:none;border-radius:8px;cursor:pointer;">💾 SAVE TIMER SETTINGS</button>
+      <button type="button" onclick="saveTimerCloud()" style="width:100%;padding:12px;background:linear-gradient(90deg, #00bcd4, #0097a7);color:#000;font-weight:800;font-size:15px;border:none;border-radius:8px;cursor:pointer;">💾 SAVE TIMER SETTINGS</button>
     </div>
 
-    <!-- ૧૦. હિડન કેલિબ્રેશન (Password: 12345) -->
+    <!-- ૧૦. હિડન કેલિબ્રેશન -->
     <div style="background:#171821;padding:15px;border-radius:12px;max-width:500px;margin:15px auto;width:100%;border:1px solid #444;box-shadow:0 6px 18px rgba(0,0,0,0.4);">
       <div style="color:#e0e0e0;font-size:15px;font-weight:700;margin-bottom:12px;text-align:center;">🔒 સેન્સર કેલિબ્રેશન (CALIBRATION)</div>
 
@@ -330,23 +330,23 @@
       <div id="calibFields" style="display:none;margin-top:15px;">
         <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
           <label style="width:110px;font-size:13px;color:#ff2b2b;font-weight:bold;">R-Phase Cal:</label>
-          <input type="number" id="calR" step="0.01" value="1.00" style="flex:1;padding:6px;background:#252632;color:#ff2b2b;border:1px solid #ff2b2b;border-radius:6px;text-align:center;font-weight:bold;">
-          <button type="button" onclick="alert('R Cal Saved')" style="padding:6px 14px;background:#ff2b2b;color:#fff;font-weight:bold;border:none;border-radius:6px;cursor:pointer;">SAVE R</button>
+          <input type="number" id="calR" step="0.01" value="300.00" style="flex:1;padding:6px;background:#252632;color:#ff2b2b;border:1px solid #ff2b2b;border-radius:6px;text-align:center;font-weight:bold;">
+          <button type="button" onclick="saveCalibCloud('R', 'calR')" style="padding:6px 14px;background:#ff2b2b;color:#fff;font-weight:bold;border:none;border-radius:6px;cursor:pointer;">SAVE R</button>
         </div>
         <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
           <label style="width:110px;font-size:13px;color:#ffb800;font-weight:bold;">Y-Phase Cal:</label>
-          <input type="number" id="calY" step="0.01" value="1.00" style="flex:1;padding:6px;background:#252632;color:#ffb800;border:1px solid #ffb800;border-radius:6px;text-align:center;font-weight:bold;">
-          <button type="button" onclick="alert('Y Cal Saved')" style="padding:6px 14px;background:#ffb800;color:#000;font-weight:bold;border:none;border-radius:6px;cursor:pointer;">SAVE Y</button>
+          <input type="number" id="calY" step="0.01" value="300.00" style="flex:1;padding:6px;background:#252632;color:#ffb800;border:1px solid #ffb800;border-radius:6px;text-align:center;font-weight:bold;">
+          <button type="button" onclick="saveCalibCloud('Y', 'calY')" style="padding:6px 14px;background:#ffb800;color:#000;font-weight:bold;border:none;border-radius:6px;cursor:pointer;">SAVE Y</button>
         </div>
         <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
           <label style="width:110px;font-size:13px;color:#2072ff;font-weight:bold;">B-Phase Cal:</label>
-          <input type="number" id="calB" step="0.01" value="1.00" style="flex:1;padding:6px;background:#252632;color:#2072ff;border:1px solid #2072ff;border-radius:6px;text-align:center;font-weight:bold;">
-          <button type="button" onclick="alert('B Cal Saved')" style="padding:6px 14px;background:#2072ff;color:#fff;font-weight:bold;border:none;border-radius:6px;cursor:pointer;">SAVE B</button>
+          <input type="number" id="calB" step="0.01" value="300.00" style="flex:1;padding:6px;background:#252632;color:#2072ff;border:1px solid #2072ff;border-radius:6px;text-align:center;font-weight:bold;">
+          <button type="button" onclick="saveCalibCloud('B', 'calB')" style="padding:6px 14px;background:#2072ff;color:#fff;font-weight:bold;border:none;border-radius:6px;cursor:pointer;">SAVE B</button>
         </div>
         <div style="display:flex;gap:8px;align-items:center;">
           <label style="width:110px;font-size:13px;color:#00e676;font-weight:bold;">Current Cal:</label>
-          <input type="number" id="calI" step="0.01" value="1.00" style="flex:1;padding:6px;background:#252632;color:#00e676;border:1px solid #00e676;border-radius:6px;text-align:center;font-weight:bold;">
-          <button type="button" onclick="alert('CT Cal Saved')" style="padding:6px 14px;background:#00e676;color:#000;font-weight:bold;border:none;border-radius:6px;cursor:pointer;">SAVE CT</button>
+          <input type="number" id="calI" step="0.01" value="20.00" style="flex:1;padding:6px;background:#252632;color:#00e676;border:1px solid #00e676;border-radius:6px;text-align:center;font-weight:bold;">
+          <button type="button" onclick="saveCalibCloud('I', 'calI')" style="padding:6px 14px;background:#00e676;color:#000;font-weight:bold;border:none;border-radius:6px;cursor:pointer;">SAVE CT</button>
         </div>
       </div>
     </div>
@@ -508,9 +508,9 @@
       var isRunning = (data.status === "RUNNING");
       var statusDiv = document.getElementById('motorStatus');
       statusDiv.style.color = isRunning ? '#00e676' : '#ff5252';
-      statusDiv.innerText = isRunning ? 'STATUS: RUNNING (ચાલુ છે)' : 'STATUS: STOPPED (બંધ છે)';
+      statusDiv.innerText = isRunning ? 'STATUS: RUNNING (ચાલુ છે)' : 'STATUS: STOPPED (બંધ છે)'; 
 
-    // ૫. સિસ્ટમ ફોલ્ટ લાઈવ અપડેટ (ફેઝ કટ, હાઈ/લો વોલ્ટેજ, ડ્રાય રન વગેરે)
+   // ૫. સિસ્ટમ ફોલ્ટ લાઈવ અપડેટ (ફેઝ કટ, હાઈ/લો વોલ્ટેજ, ડ્રાય રન વગેરે)
       var fText = document.getElementById('sysFaultText');
       var fBox = document.getElementById('sysFaultBox');
       if (fText && fBox && data.fault) {
@@ -519,6 +519,79 @@
         fText.style.color = hasFault ? "#ff2b2b" : "#00e676";
         fBox.style.borderColor = hasFault ? "#ff2b2b" : "#00e676";
       }
+
+      // કરંટ પ્રોટેક્શન વેલ્યુ લાઈવ સેટ કરો (જો યુઝર ટાઈપ ન કરતો હોય તો)
+      if (data.over_cur !== undefined && document.activeElement !== document.getElementById('overVal')) document.getElementById('overVal').value = parseFloat(data.over_cur).toFixed(1);
+      if (data.jam_cur !== undefined && document.activeElement !== document.getElementById('jamVal')) document.getElementById('jamVal').value = parseFloat(data.jam_cur).toFixed(1);
+      if (data.dry_cur !== undefined && document.activeElement !== document.getElementById('dryVal')) document.getElementById('dryVal').value = parseFloat(data.dry_cur).toFixed(1);
+      if (data.dry_time !== undefined && document.activeElement !== document.getElementById('timeVal')) {
+        var dt = parseInt(data.dry_time);
+        var dh = Math.floor(dt/3600), dm = Math.floor((dt%3600)/60), ds = dt%60;
+        document.getElementById('timeVal').value = String(dh).padStart(2,'0') + ":" + String(dm).padStart(2,'0') + ":" + String(ds).padStart(2,'0');
+      }
+
+      // સેફ્ટી ડાયગ્નોસ્ટિક્સ લાઈવ અપડેટ
+      if (document.getElementById('diagHealth')) document.getElementById('diagHealth').innerText = (data.health !== undefined ? data.health : "100.0") + " %";
+      if (document.getElementById('diagCable')) {
+        document.getElementById('diagCable').innerHTML = data.cable_cut ? "<span style='color:#ff1744;font-weight:bold;'>🔴 CABLE CUT FAULT</span>" : "<span style='color:#00e676;font-weight:bold;'>🟢 CONNECTED OK</span>";
+      }
+      if (document.getElementById('diagSeq')) {
+        document.getElementById('diagSeq').innerHTML = (data.phase_seq === false) ? "<span style='color:#ff1744;font-weight:bold;'>🔴 REVERSE FAULT</span>" : "<span style='color:#00e676;font-weight:bold;'>🟢 NORMAL OK</span>";
+      } 
+      if (document.getElementById('diagSupply')) {
+        var isCut = (data.fault && data.fault.indexOf("CUT") >= 0);
+        document.getElementById('diagSupply').innerHTML = isCut ? "<span style='color:#ff1744;font-weight:bold;'>🔴 " + data.fault + "</span>" : "<span style='color:#00e676;font-weight:bold;'>🟢 NORMAL OK</span>";
+      }
+      if (document.getElementById('diagVolt')) {
+        var isVolt = (data.fault && data.fault.indexOf("VOLTAGE") >= 0);
+        document.getElementById('diagVolt').innerHTML = isVolt ? "<span style='color:#ff1744;font-weight:bold;'>🔴 " + data.fault + "</span>" : "<span style='color:#00e676;font-weight:bold;'>🟢 NORMAL OK</span>";
+      }
+      if (document.getElementById('diagJam')) {
+        document.getElementById('diagJam').innerHTML = (data.fault === "MOTOR JAM TRIP") ? "<span style='color:#ff1744;font-weight:bold;'>🔴 MOTOR JAM TRIP</span>" : "<span style='color:#00e676;font-weight:bold;'>🟢 NORMAL OK</span>";
+      }
+      if (document.getElementById('diagOc')) {
+        document.getElementById('diagOc').innerHTML = (data.fault === "OVER CURRENT") ? "<span style='color:#ff1744;font-weight:bold;'>🔴 OVER CURRENT TRIP</span>" : "<span style='color:#00e676;font-weight:bold;'>🟢 NORMAL OK</span>";
+      }
+      if (document.getElementById('diagDry')) {
+        document.getElementById('diagDry').innerHTML = (data.fault === "DRY RUN TRIP") ? "<span style='color:#ff1744;font-weight:bold;'>🔴 DRY RUN TRIP</span>" : "<span style='color:#00e676;font-weight:bold;'>🟢 NORMAL OK</span>";
+      }
+
+      // GSM નંબર્સ અપડેટ
+      for(var g=0; g<5; g++) {
+        var gEl = document.getElementById('gsm'+g);
+        if (gEl && data['gsm'+g] !== undefined && document.activeElement !== gEl) {
+          gEl.value = data['gsm'+g];
+        }
+      }
+
+      // વાઈફાઈ SSID
+      if (data.wifi_ssid && document.activeElement !== document.getElementById('wfSsid')) {
+        document.getElementById('wfSsid').value = data.wifi_ssid;
+      }
+
+      // ઓટો ટાઈમર સેટિંગ્સ
+      if (data.timer_en !== undefined && document.activeElement !== document.getElementById('timerEn')) {
+        document.getElementById('timerEn').checked = data.timer_en;
+        document.getElementById('timerInputsBox').style.display = data.timer_en ? 'block' : 'none';
+      }
+      if (data.on_delay !== undefined && document.activeElement !== document.getElementById('onTimeVal')) {
+        var od = parseInt(data.on_delay);
+        document.getElementById('onTimeVal').value = String(Math.floor(od/3600)).padStart(2,'0') + ":" + String(Math.floor((od%3600)/60)).padStart(2,'0') + ":" + String(od%60).padStart(2,'0');
+      }
+      if (data.run_sec !== undefined && document.activeElement !== document.getElementById('runTimeVal')) {
+        var rs = parseInt(data.run_sec);
+        document.getElementById('runTimeVal').value = String(Math.floor(rs/3600)).padStart(2,'0') + ":" + String(Math.floor((rs%3600)/60)).padStart(2,'0') + ":" + String(rs%60).padStart(2,'0');
+      }
+      if (data.timer_left !== undefined && document.getElementById('timerLeftDisplay')) {
+        var tl = parseInt(data.timer_left);
+        document.getElementById('timerLeftDisplay').innerText = String(Math.floor(tl/3600)).padStart(2,'0') + ":" + String(Math.floor((tl%3600)/60)).padStart(2,'0') + ":" + String(tl%60).padStart(2,'0');
+      }
+
+      // કેલિબ્રેશન ફીલ્ડ્સ
+      if (data.cal_r && document.activeElement !== document.getElementById('calR')) document.getElementById('calR').value = parseFloat(data.cal_r).toFixed(2);
+      if (data.cal_y && document.activeElement !== document.getElementById('calY')) document.getElementById('calY').value = parseFloat(data.cal_y).toFixed(2);
+      if (data.cal_b && document.activeElement !== document.getElementById('calB')) document.getElementById('calB').value = parseFloat(data.cal_b).toFixed(2);
+      if (data.cal_i && document.activeElement !== document.getElementById('calI')) document.getElementById('calI').value = parseFloat(data.cal_i).toFixed(2);
 
     } catch (err) {
       var cStatus = document.getElementById('cloudStatus');
@@ -564,6 +637,108 @@
     } catch (e) {
       alert("❌ ક્લાઉડ સેવિંગમાં ભૂલ આવી!");
     }
+  }
+
+  // --- કરંટ સેટિંગ્સ Firebase માં સેવ કરવું ---
+  async function saveCurrentCloud() {
+    if (!activeSerial) { alert("પહેલા ડિવાઇસ પસંદ કરો!"); return; }
+    var over = parseFloat(document.getElementById('overVal').value);
+    var jam = parseFloat(document.getElementById('jamVal').value);
+    var dry = parseFloat(document.getElementById('dryVal').value);
+    var tStr = document.getElementById('timeVal').value.split(':');
+    var sec = (parseInt(tStr[0]) * 3600) + (parseInt(tStr[1]) * 60) + parseInt(tStr[2]);
+
+    try {
+      await fetch(FIREBASE_URL + "/devices/" + activeSerial + "/cmd.json", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "SET_CURR", over: over, jam: jam, dry: dry, time: sec, timeStamp: Date.now() })
+      });
+      alert("✅ કરંટ સેટિંગ્સ સફળતાપૂર્વક ક્લાઉડ પર સેવ થઈ ગયા!");
+    } catch (e) { alert("❌ ભૂલ આવી!"); }
+  }
+
+  // --- ઓટો ટાઈમર સેટિંગ્સ ક્લાઉડ પર સેવ કરવું ---
+  async function saveTimerCloud() {
+    if (!activeSerial) { alert("પહેલા ડિવાઇસ પસંદ કરો!"); return; }
+    var en = document.getElementById('timerEn').checked;
+    var onP = document.getElementById('onTimeVal').value.split(':');
+    var onSec = (parseInt(onP[0]) * 3600) + (parseInt(onP[1]) * 60) + parseInt(onP[2]);
+    var runP = document.getElementById('runTimeVal').value.split(':');
+    var runSec = (parseInt(runP[0]) * 3600) + (parseInt(runP[1]) * 60) + parseInt(runP[2]);
+
+    try {
+      await fetch(FIREBASE_URL + "/devices/" + activeSerial + "/cmd.json", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "SET_TIMER", en: en, onDel: onSec, runSec: runSec, timeStamp: Date.now() })
+      });
+      alert("✅ ટાઈમર સેટિંગ્સ સફળતાપૂર્વક ક્લાઉડ પર સેવ થઈ ગયા!");
+    } catch (e) { alert("❌ ભૂલ આવી!"); }
+  }
+
+  // --- GSM નંબર્સ ક્લાઉડ પર સેવ કરવું ---
+  async function saveGsmCloud() {
+    if (!activeSerial) { alert("પહેલા ડિવાઇસ પસંદ કરો!"); return; }
+    var payload = { action: "SET_GSM", timeStamp: Date.now() };
+    for(var i=0; i<5; i++) {
+      payload["n"+i] = document.getElementById('gsm'+i).value;
+    }
+    try {
+      await fetch(FIREBASE_URL + "/devices/" + activeSerial + "/cmd.json", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      alert("✅ GSM નંબર્સ સફળતાપૂર્વક ક્લાઉડ પર અપડેટ થઈ ગયા!");
+    } catch (e) { alert("❌ ભૂલ આવી!"); }
+  }
+
+  // --- વાઈફાઈ સેટિંગ્સ ક્લાઉડ પર સેવ કરવું ---
+  async function saveWifiCloud() {
+    if (!activeSerial) { alert("પહેલા ડિવાઇસ પસંદ કરો!"); return; }
+    var ssid = document.getElementById('wfSsid').value;
+    var pass = document.getElementById('wfPass').value;
+    if (confirm("શું તમે વાઇફાઇ બદલવા માંગો છો? ESP32 રીસ્ટાર્ટ થશે.")) {
+      try {
+        await fetch(FIREBASE_URL + "/devices/" + activeSerial + "/cmd.json", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "SET_WIFI", ssid: ssid, pass: pass, timeStamp: Date.now() })
+        });
+        alert("✅ વાઈફાઈ સેવ કમાન્ડ મોકલાઈ ગયો! ESP32 રીસ્ટાર્ટ થશે.");
+      } catch (e) { alert("❌ ભૂલ આવી!"); }
+    }
+  }
+
+  // --- સિસ્ટમ રીસ્ટાર્ટ ક્લાઉડ કમાન્ડ ---
+  async function restartCloud() {
+    if (!activeSerial) { alert("પહેલા ડિવાઇસ પસંદ કરો!"); return; }
+    if (confirm("શું તમે સિસ્ટમ રીસ્ટાર્ટ કરવા માંગો છો?")) {
+      try {
+        await fetch(FIREBASE_URL + "/devices/" + activeSerial + "/cmd.json", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "RESTART", timeStamp: Date.now() })
+        });
+        alert("🔄 રીસ્ટાર્ટ કમાન્ડ મોકલાઈ ગયો!");
+      } catch (e) { alert("❌ ભૂલ આવી!"); }
+    }
+  }
+
+  // --- સેન્સર કેલિબ્રેશન ક્લાઉડ સેવ ---
+  async function saveCalibCloud(type, id) {
+    if (!activeSerial) { alert("પહેલા ડિવાઇસ પસંદ કરો!"); return; }
+    var pass = document.getElementById('calPass').value;
+    var val = parseFloat(document.getElementById(id).value);
+    try {
+      await fetch(FIREBASE_URL + "/devices/" + activeSerial + "/cmd.json", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "SET_CALIB", type: type, val: val, pass: pass, timeStamp: Date.now() })
+      });
+      alert("✅ " + type + " કેલિબ્રેશન કમાન્ડ મોકલાઈ ગયો!");
+    } catch (e) { alert("❌ ભૂલ આવી!"); }
   }
 
   // પેજ ખુલતા જ શરૂ કરો
