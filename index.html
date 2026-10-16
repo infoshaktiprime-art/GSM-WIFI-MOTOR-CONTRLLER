@@ -95,10 +95,32 @@
         <input type="text" id="inputSerial" placeholder="Serial Key (XYZ-A1B2C3D4E5F6)" style="flex:1;min-width:160px;padding:8px;background:#252632;color:#fff;border:1px solid #555;border-radius:6px;font-size:13px;">
         <input type="text" id="inputName" placeholder="નામ (દા.ત. વાડી મોટર)" style="flex:1;min-width:130px;padding:8px;background:#252632;color:#fff;border:1px solid #555;border-radius:6px;font-size:13px;">
         <button type="button" onclick="saveNewDevice()" style="padding:8px 15px;background:#00bcd4;color:#000;font-weight:bold;border:none;border-radius:6px;cursor:pointer;">➕ Add / Save</button>
-      </div>
-      <div id="cloudStatus" style="font-size:12px;color:#ffb800;text-align:center;margin-top:8px;font-weight:bold;">⏳ Cloud Connecting...</div>
-    </div>
+      </div> 
+      <div id="cloudStatus" style="font-size:12px;color:#ffb800;text-align:center;margin:8px 0;font-weight:bold;">⏳ Cloud Connecting...</div>
 
+      <!-- 📋 SAVED DEVICES & LIVE IP ટેબલ (તમારા ફોટા મુજબનું ડિઝાઇન) -->
+      <div style="background:#131d27;border:1px solid #00bcd4;border-radius:10px;padding:12px;margin-top:12px;box-shadow:inset 0 0 10px rgba(0,188,212,0.15);">
+        <div style="color:#ffd600;font-size:13px;font-weight:800;margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+          <span>📋 Saved Devices & Live IP:</span>
+        </div>
+        <div style="overflow-x:auto;">
+          <table style="width:100%;border-collapse:collapse;font-size:12px;text-align:left;">
+            <thead>
+              <tr style="border-bottom:1px solid #22374a;color:#00bcd4;font-weight:700;">
+                <th style="padding:6px;">Device Name</th>
+                <th style="padding:6px;">Serial Number</th>
+                <th style="padding:6px;">Status</th>
+                <th style="padding:6px;">Live IP</th>
+                <th style="padding:6px;text-align:center;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="deviceTableBody">
+              <!-- ૧ થી ૧૦૦ ડિવાઇસ અહીં લાઈવ લોડ થશે -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
     <!-- ૧. LOAD CURRENT -->
     <div class="current-card">
       <div class="curr-title">LOAD CURRENT (સેન્સર)</div>
@@ -395,12 +417,13 @@
     localStorage.setItem('saved_esp_devices', JSON.stringify(deviceList));
     localStorage.setItem('active_serial', activeSerial);
     populateDropdown();
+    renderDeviceTable();
   }
 
   function populateDropdown() {
     var sel = document.getElementById('deviceSelect');
     if (!sel) return;
-    sel.innerHTML = '';
+    sel.innerHTML = '<option value="">-- Choose Device --</option>';
     deviceList.forEach(function(d) {
       var opt = document.createElement('option');
       opt.value = d.serial;
@@ -408,6 +431,83 @@
       if (d.serial === activeSerial) opt.selected = true;
       sel.appendChild(opt);
     });
+  }
+
+  // ૧ થી ૧૦૦ ડિવાઇસનું લાઈવ ટેબલ રેન્ડર કરવું
+  async function renderDeviceTable() {
+    var tbody = document.getElementById('deviceTableBody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    deviceList.forEach(function(d) {
+      var isCurrent = (d.serial === activeSerial);
+      var tr = document.createElement('tr');
+      tr.style.borderBottom = "1px solid #1c2b38";
+      if (isCurrent) tr.style.background = "rgba(0, 188, 212, 0.15)";
+
+      // Device Name
+      var tdName = `<td style="padding:8px 6px;font-weight:bold;color:${isCurrent ? '#00e676' : '#ffffff'};">${d.name} ${isCurrent ? '⭐' : ''}</td>`;
+      
+      // Serial Number
+      var tdSerial = `<td style="padding:8px 6px;color:#ffd600;font-family:monospace;font-size:11px;">${d.serial}</td>`;
+      
+      // Status & Live IP placeholders
+      var tdStatus = `<td style="padding:8px 6px;" id="st_${d.serial}"><span style="color:#aaa;">Checking...</span></td>`;
+      var tdIP = `<td style="padding:8px 6px;" id="ip_${d.serial}"><span style="color:#888;">--</span></td>`;
+      
+      // Actions: Select & Delete
+      var tdAction = `<td style="padding:8px 6px;text-align:center;white-space:nowrap;">
+        <button onclick="selectDeviceDirect('${d.serial}')" style="padding:3px 8px;font-size:11px;background:#00bcd4;color:#000;font-weight:bold;border:none;border-radius:4px;cursor:pointer;margin-right:4px;">⚡ View</button>
+        <button onclick="deleteDeviceDirect('${d.serial}')" style="padding:3px 6px;font-size:11px;background:#d50000;color:#fff;border:none;border-radius:4px;cursor:pointer;">🗑️</button>
+      </td>`;
+
+      tr.innerHTML = tdName + tdSerial + tdStatus + tdIP + tdAction;
+      tbody.appendChild(tr);
+
+      // બેકગ્રાઉન્ડમાં દરેક ડિવાઇસનો લાઈવ સ્ટેટસ અને IP ખેંચવો
+      updateRowLiveInfo(d.serial);
+    });
+  }
+
+  async function updateRowLiveInfo(serial) {
+    try {
+      var res = await fetch(FIREBASE_URL + "/devices/" + serial + ".json");
+      var d = await res.json();
+      var stEl = document.getElementById("st_" + serial);
+      var ipEl = document.getElementById("ip_" + serial);
+
+      if (d && stEl && ipEl) {
+        var isRun = (d.status === "RUNNING");
+        stEl.innerHTML = isRun ? "<span style='color:#00e676;font-weight:bold;'>🟢 RUNNING</span>" : "<span style='color:#ff5252;font-weight:bold;'>🔴 STOPPED</span>";
+        
+        var ip = d.ip || "Online";
+        if (d.ip && d.ip.length > 6) {
+          ipEl.innerHTML = `<a href="http://${d.ip}" target="_blank" style="color:#61dafb;font-weight:bold;text-decoration:underline;">🔗 ${d.ip}</a>`;
+        } else {
+          ipEl.innerHTML = "<span style='color:#888;'>No IP</span>";
+        }
+      } else if (stEl) {
+        stEl.innerHTML = "<span style='color:#777;'>⚫ Offline</span>";
+      }
+    } catch (e) {}
+  }
+
+  function selectDeviceDirect(serial) {
+    activeSerial = serial;
+    localStorage.setItem('active_serial', activeSerial);
+    populateDropdown();
+    renderDeviceTable();
+    fetchFirebaseData();
+  }
+
+  function deleteDeviceDirect(serial) {
+    if (deviceList.length <= 1) { alert("ઓછામાં ઓછું ૧ ડિવાઇસ લિસ્ટમાં હોવું જોઈએ!"); return; }
+    if (confirm("શું તમે આ ડિવાઇસ કાઢી નાખવા માંગો છો? (" + serial + ")")) {
+      deviceList = deviceList.filter(function(d){ return d.serial !== serial; });
+      if (activeSerial === serial) activeSerial = deviceList[0].serial;
+      saveToStorage();
+      fetchFirebaseData();
+    }
   }
 
   function switchDevice() {
