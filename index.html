@@ -164,13 +164,13 @@
       <div style="color:#2979ff;font-size:15px;font-weight:700;margin-bottom:12px;text-align:center;letter-spacing:1px;">⚡ VOLTAGE PROTECTION SETTINGS (415V L-L)</div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
         <label style="font-size:14px;color:#ccc;">Over Voltage Limit (V):</label>
-        <input type="number" id="ovVal" value="480.0" style="width:90px;padding:6px;background:#252632;color:#fff;border:1px solid #555;border-radius:6px;text-align:center;font-size:15px;">
+    <input type="number" id="ovVal" value="460.0" style="width:90px;padding:6px;background:#252632;color:#fff;border:1px solid #555;border-radius:6px;text-align:center;font-size:15px;">
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
         <label style="font-size:14px;color:#ccc;">Under Voltage Limit (V):</label>
-        <input type="number" id="uvVal" value="300.0" style="width:90px;padding:6px;background:#252632;color:#fff;border:1px solid #555;border-radius:6px;text-align:center;font-size:15px;">
+        <input type="number" id="uvVal" value="320.0" style="width:90px;padding:6px;background:#252632;color:#fff;border:1px solid #555;border-radius:6px;text-align:center;font-size:15px;">
       </div>
-      <button type="button" onclick="alert('Voltage Settings Saved!')" style="width:100%;padding:12px;background:#2979ff;color:#fff;font-weight:700;font-size:15px;border:none;border-radius:8px;cursor:pointer;">💾 SAVE VOLTAGE SETTINGS</button>
+      <button type="button" onclick="saveVoltCloud()" style="width:100%;padding:12px;background:#2979ff;color:#fff;font-weight:700;font-size:15px;border:none;border-radius:8px;cursor:pointer;">💾 SAVE VOLTAGE SETTINGS</button>
     </div>
 
     <!-- ૫. કરંટ પ્રોટેક્શન સેટિંગ્સ -->
@@ -495,7 +495,15 @@
       document.getElementById('pctRY').innerText = pRY + "% (550V)";
       document.getElementById('pctYB').innerText = pYB + "% (550V)";
       document.getElementById('pctBR').innerText = pBR + "% (550V)";
-
+ 
+     // ESP32 માંથી સેટ કરેલા Over/Under વોલ્ટેજ લાઈવ દેખાડશે (Local Web Page જેવું જ)
+      if (data.ov_limit && document.activeElement !== document.getElementById('ovVal')) {
+        document.getElementById('ovVal').value = parseFloat(data.ov_limit).toFixed(1);
+      }
+      if (data.uv_limit && document.activeElement !== document.getElementById('uvVal')) {
+        document.getElementById('uvVal').value = parseFloat(data.uv_limit).toFixed(1);
+      }
+  
       // ૪. મોટર ચાલુ / બંધ સ્ટેટસ
       var isRunning = (data.status === "RUNNING");
       var statusDiv = document.getElementById('motorStatus');
@@ -538,6 +546,23 @@
       alert("✅ " + cmd + " કમાન્ડ સફળતાપૂર્વક મોકલાઈ ગયો!");
     } catch (e) {
       alert("❌ ક્લાઉડ કમાન્ડ મોકલવામાં ભૂલ આવી!");
+    }
+  }
+
+   // --- વોલ્ટેજ સેટિંગ્સ Firebase માં સેવ કરવાનું ફંક્શન ---
+  async function saveVoltCloud() {
+    if (!activeSerial) { alert("પહેલા ડિવાઇસ પસંદ કરો!"); return; }
+    var ov = parseFloat(document.getElementById('ovVal').value);
+    var uv = parseFloat(document.getElementById('uvVal').value);
+    try {
+      await fetch(FIREBASE_URL + "/devices/" + activeSerial + "/cmd.json", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "SET_VOLT", ov: ov, uv: uv, time: Date.now() })
+      });
+      alert("✅ વોલ્ટેજ સેટિંગ્સ સફળતાપૂર્વક ક્લાઉડ પર સેવ થઈ ગયા!");
+    } catch (e) {
+      alert("❌ ક્લાઉડ સેવિંગમાં ભૂલ આવી!");
     }
   }
 
