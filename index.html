@@ -567,8 +567,20 @@
       if (!data) {
         if (cStatus) cStatus.innerHTML = "⚠️ ડિવાઇસનો કોઈ ડેટા મળ્યો નથી (ઓફલાઇન હોઈ શકે છે)";
         return;
+      } 
+      // ૧. કનેક્શન લાઈનમાં પણ લાઈવ IP બતાવશે (ક્લિક કરવાથી લોકલ પેજ ખુલશે)
+      var liveDeviceIP = (data.ip && data.ip.length > 6) ? data.ip : "Online";
+      if (cStatus) {
+        cStatus.innerHTML = `🟢 CONNECTED TO CLOUD | Device: ${activeSerial} | Live IP: <a href="http://${liveDeviceIP}" target="_blank" style="color:#00e676;text-decoration:underline;font-weight:bold;">🔗 ${liveDeviceIP}</a>`;
       }
-      if (cStatus) cStatus.innerHTML = "🟢 CONNECTED TO CLOUD | Device: " + activeSerial;
+
+      // ૨. ટેબલમાં પણ લાઈવ IP અને સ્ટેટસ તાત્કાલિક અપડેટ કરવું
+      var curStEl = document.getElementById("st_" + activeSerial);
+      var curIpEl = document.getElementById("ip_" + activeSerial);
+      if (curStEl) curStEl.innerHTML = (data.status === "RUNNING") ? "<span style='color:#00e676;font-weight:bold;'>🟢 RUNNING</span>" : "<span style='color:#ff5252;font-weight:bold;'>🔴 STOPPED</span>";
+      if (curIpEl) curIpEl.innerHTML = (data.ip && data.ip.length > 6) ? `<a href="http://${data.ip}" target="_blank" style="color:#61dafb;font-weight:bold;text-decoration:underline;">🔗 ${data.ip}</a>` : "<span style='color:#888;'>No IP</span>";
+
+      // ૩. કરંટ અને કરંટ બાર અપડેટ
 
       // ૧. કરંટ અને કરંટ બાર અપડેટ
       var cur = parseFloat(data.current || 0);
@@ -860,6 +872,7 @@
   // પેજ ખુલતા જ શરૂ કરો
   window.addEventListener('DOMContentLoaded', function() {
     populateDropdown();
+    renderDeviceTable();
     startSimulation();
   });
  
