@@ -113,10 +113,11 @@
         <div style="overflow-x:auto;">
           <table style="width:100%;border-collapse:collapse;font-size:12px;text-align:left;">
             <thead>
-              <tr style="border-bottom:1px solid #22374a;color:#00bcd4;font-weight:700;">
+             <tr style="border-bottom:1px solid #22374a;color:#00bcd4;font-weight:700;">
                 <th style="padding:6px;">Device Name</th>
                 <th style="padding:6px;">Serial Number</th>
-                <th style="padding:6px;">Status</th>
+                <th style="padding:6px;text-align:center;">Device (Wi-Fi)</th>
+                <th style="padding:6px;text-align:center;">Motor Status</th>
                 <th style="padding:6px;">Live IP</th>
                 <th style="padding:6px;text-align:center;">Action</th>
               </tr>
@@ -471,9 +472,8 @@
       sel.appendChild(opt);
     });
   }
-
-  // ૧ થી ૧૦૦ ડિવાઇસનું લાઈવ ટેબલ રેન્ડર કરવું
-  async function renderDeviceTable() {
+//////////////////////////////////////////////////////
+async function renderDeviceTable() {
     var tbody = document.getElementById('deviceTableBody');
     if (!tbody) return;
     tbody.innerHTML = '';
@@ -484,50 +484,54 @@
       tr.style.borderBottom = "1px solid #1c2b38";
       if (isCurrent) tr.style.background = "rgba(0, 188, 212, 0.15)";
 
-      // Device Name
+      // ૧. Device Name
       var tdName = `<td style="padding:8px 6px;font-weight:bold;color:${isCurrent ? '#00e676' : '#ffffff'};">${d.name} ${isCurrent ? '⭐' : ''}</td>`;
       
-      // Serial Number
+      // ૨. Serial Number
       var tdSerial = `<td style="padding:8px 6px;color:#ffd600;font-family:monospace;font-size:11px;">${d.serial}</td>`;
       
-      // Status & Live IP placeholders
-      var tdStatus = `<td style="padding:8px 6px;" id="st_${d.serial}"><span style="color:#aaa;">Checking...</span></td>`;
+      // ૩. અલગ ખાનું: Device Wi-Fi Status (ONLINE / OFFLINE)
+      var tdNet = `<td style="padding:8px 6px;text-align:center;" id="net_${d.serial}"><span style="color:#aaa;">Checking...</span></td>`;
+      
+      // ૪. અલગ ખાનું: Motor Status (RUNNING / STOPPED)
+      var tdMotor = `<td style="padding:8px 6px;text-align:center;" id="mot_${d.serial}"><span style="color:#aaa;">Checking...</span></td>`;
+      
+      // ૫. અલગ ખાનું: Live IP
       var tdIP = `<td style="padding:8px 6px;" id="ip_${d.serial}"><span style="color:#888;">--</span></td>`;
       
-      // Actions: Select & Delete
+      // ૬. Action Buttons (View & Delete)
       var tdAction = `<td style="padding:8px 6px;text-align:center;white-space:nowrap;">
         <button onclick="selectDeviceDirect('${d.serial}')" style="padding:3px 8px;font-size:11px;background:#00bcd4;color:#000;font-weight:bold;border:none;border-radius:4px;cursor:pointer;margin-right:4px;">⚡ View</button>
         <button onclick="deleteDeviceDirect('${d.serial}')" style="padding:3px 6px;font-size:11px;background:#d50000;color:#fff;border:none;border-radius:4px;cursor:pointer;">🗑️</button>
       </td>`;
 
-      tr.innerHTML = tdName + tdSerial + tdStatus + tdIP + tdAction;
+      tr.innerHTML = tdName + tdSerial + tdNet + tdMotor + tdIP + tdAction;
       tbody.appendChild(tr);
 
-      // બેકગ્રાઉન્ડમાં દરેક ડિવાઇસનો લાઈવ સ્ટેટસ અને IP ખેંચવો
+      // બેકગ્રાઉન્ડમાં લાઈવ ડેટા ખેંચવો
       updateRowLiveInfo(d.serial);
     });
   }
 
- // --- દરેક ડિવાઇસનું લાઈવ ONLINE / OFFLINE સ્ટેટસ (Bold Green / Red) ---
+  // લાઈવ વિગતો બંને ખાનામાં અલગ-અલગ અપડેટ કરવાનું ફંક્શન
   window.seenTracker = window.seenTracker || {};
 
   async function updateRowLiveInfo(serial) {
     try {
       var res = await fetch(FIREBASE_URL + "/devices/" + serial + ".json");
       var d = await res.json();
-      var stEl = document.getElementById("st_" + serial);
+      var netEl = document.getElementById("net_" + serial);
+      var motEl = document.getElementById("mot_" + serial);
       var ipEl = document.getElementById("ip_" + serial);
 
-      if (d && stEl && ipEl) {
+      if (d) {
         var now = Date.now();
         var isOnline = false;
 
-        // ૧. જો Firebase સર્વર ટાઈમસ્ટેમ્પ (ts) હોય તો ૧૦ સેકન્ડમાં અપડેટ ચેક કરશે
+        // Firebase સર્વર ટાઈમસ્ટેમ્પ (ts) અથવા last_seen થી Online ચેક થશે
         if (d.ts) {
           isOnline = (now - d.ts < 12000);
-        } 
-        // ૨. અથવા last_seen લાઇવ બદલાય છે કે નહીં તે ચેક કરશે
-        else if (d.last_seen !== undefined) {
+        } else if (d.last_seen !== undefined) {
           var prev = window.seenTracker[serial];
           if (!prev || prev.val !== d.last_seen) {
             window.seenTracker[serial] = { val: d.last_seen, time: now };
@@ -537,27 +541,41 @@
           }
         }
 
-        // BOLD FONT માં ONLINE (લીલો) અને OFFLINE (લાલ) સ્ટેટસ
-        if (isOnline) {
-          var motorTxt = (d.status === "RUNNING") ? " (ON)" : " (OFF)";
-          stEl.innerHTML = `<span style="color:#00e676;font-weight:900;font-size:13px;letter-spacing:1px;">🟢 ONLINE</span><br><span style="font-size:10px;color:#aaa;font-weight:bold;">${d.status || 'OK'}${motorTxt}</span>`;
-        } else {
-          stEl.innerHTML = `<span style="color:#ff1744;font-weight:900;font-size:13px;letter-spacing:1px;">🔴 OFFLINE</span>`;
+        // ૧. Device Wi-Fi Status ખાનું (Bold Green / Bold Red)
+        if (netEl) {
+          netEl.innerHTML = isOnline ? 
+            `<span style="color:#00e676;font-weight:900;font-size:12px;letter-spacing:0.5px;">🟢 ONLINE</span>` : 
+            `<span style="color:#ff1744;font-weight:900;font-size:12px;letter-spacing:0.5px;">🔴 OFFLINE</span>`;
         }
 
-        // Live IP ડિસ્પ્લે
-        if (isOnline && d.ip && d.ip.length > 6) {
-          ipEl.innerHTML = `<a href="http://${d.ip}" target="_blank" style="color:#61dafb;font-weight:bold;text-decoration:underline;">🔗 ${d.ip}</a>`;
-        } else {
-          ipEl.innerHTML = `<span style="color:#888;">${isOnline ? '--' : 'Offline'}</span>`;
+        // ૨. Motor Status ખાનું (RUNNING / STOPPED)
+        if (motEl) {
+          if (!isOnline) {
+            motEl.innerHTML = `<span style="color:#777;font-weight:bold;">--</span>`;
+          } else if (d.status === "RUNNING") {
+            motEl.innerHTML = `<span style="color:#00e676;font-weight:bold;font-size:12px;">🟢 RUNNING</span>`;
+          } else {
+            motEl.innerHTML = `<span style="color:#ff5252;font-weight:bold;font-size:12px;">🔴 STOPPED</span>`;
+          }
         }
-      } else if (stEl) {
-        stEl.innerHTML = `<span style="color:#ff1744;font-weight:900;font-size:13px;letter-spacing:1px;">🔴 OFFLINE</span>`;
+
+        // ૩. Live IP ખાનું
+        if (ipEl) {
+          if (isOnline && d.ip && d.ip.length > 6) {
+            ipEl.innerHTML = `<a href="http://${d.ip}" target="_blank" style="color:#61dafb;font-weight:bold;text-decoration:underline;">🔗 ${d.ip}</a>`;
+          } else {
+            ipEl.innerHTML = `<span style="color:#888;">--</span>`;
+          }
+        }
+
+      } else {
+        if (netEl) netEl.innerHTML = `<span style="color:#ff1744;font-weight:900;font-size:12px;">🔴 OFFLINE</span>`;
+        if (motEl) motEl.innerHTML = `<span style="color:#777;">--</span>`;
         if (ipEl) ipEl.innerHTML = `<span style="color:#888;">--</span>`;
       }
     } catch (e) {
-      var stEl = document.getElementById("st_" + serial);
-      if (stEl) stEl.innerHTML = `<span style="color:#ff1744;font-weight:900;font-size:13px;letter-spacing:1px;">🔴 OFFLINE</span>`;
+      var netEl = document.getElementById("net_" + serial);
+      if (netEl) netEl.innerHTML = `<span style="color:#ff1744;font-weight:900;font-size:12px;">🔴 OFFLINE</span>`;
     }
   }
 
@@ -569,11 +587,10 @@
     fetchFirebaseData();
   }
 
-  // --- ડિવાઇસ સીધું ટેબલમાંથી ડીલીટ કરવું (કોઈ રોકટોક વગર) ---
   function deleteDeviceDirect(serial) {
     if (confirm("શું તમે આ ડિવાઇસ કાઢી નાખવા માંગો છો? (" + serial + ")")) {
       deviceList = deviceList.filter(function(d){ return d.serial !== serial; });
-      if (activeSerial === serial) activeSerial = deviceList.length > 0 ? deviceList[0].serial : '';
+      activeSerial = deviceList.length > 0 ? deviceList[0].serial : '';
       saveToStorage();
       fetchFirebaseData();
     }
