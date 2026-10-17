@@ -149,6 +149,13 @@
       <button type="button" onclick="startVoiceControl()" id="micBtn" style="width:100%;padding:14px;font-size:16px;font-weight:800;color:#fff;background:linear-gradient(135deg, #00bcd4, #2196f3);border:none;border-radius:12px;cursor:pointer;box-shadow:0 4px 15px rgba(0,188,212,0.4);display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px;">
         <span style="font-size:22px;">🎤</span> <span id="micText">VOICE CONTROL (બોલીને ચાલુ/બંધ કરો)</span>
       </button>
+
+      <!-- 🗣️ તમે જે બોલશો તે લખાણ અહીં લાઈવ દેખાશે -->
+      <div id="spokenTextDisplay" style="display:none;background:#131d27;border:1.5px dashed #00e676;border-radius:8px;padding:9px 12px;margin-bottom:8px;font-size:13px;text-align:center;">
+        <span style="color:#ffd600;font-weight:bold;">🗣️ તમે બોલ્યા: </span>
+        <span id="heardWord" style="color:#00e676;font-weight:900;letter-spacing:1px;font-size:15px;">"..."</span>
+      </div>
+
       <div style="display:flex;gap:6px;background:#171821;padding:8px 10px;border-radius:8px;border:1px solid #333;align-items:center;flex-wrap:wrap;">
         <span style="font-size:12px;color:#00bcd4;font-weight:bold;white-space:nowrap;">🏷️ Name:</span>
         <input type="text" id="voiceNameInput" value="motor" placeholder="દા.ત. motor / vadi" style="flex:1;min-width:90px;padding:6px 8px;background:#252632;color:#fff;border:1px solid #555;border-radius:6px;font-size:13px;text-align:center;">
@@ -161,6 +168,7 @@
       </div>
       <div style="font-size:11px;color:#888;margin-top:4px;text-align:left;">💡 <b>ગુજરાતી:</b> "મોટર ચાલુ / બંધ" | <b>हिन्दी:</b> "मोटर चालू / बंद" | <b>English:</b> "motor on / off".</div>
     </div>
+
     <!-- સિસ્ટમ ફોલ્ટ સ્ટેટસ -->
       <div id="sysFaultBox" style="background:#171821;padding:14px;border-radius:12px;max-width:500px;margin:10px auto 15px auto;width:100%;text-align:center;border:2px solid #00e676;box-shadow:0 4px 15px rgba(0,0,0,0.5);">
       <div style="font-size:12px;color:#8e8e93;font-weight:700;letter-spacing:1.5px;margin-bottom:6px;">SYSTEM STATUS</div>
@@ -792,9 +800,26 @@
     liveTimer = setInterval(fetchFirebaseData, 2000);
   }
 
-  // --- બટન વડે મોટર START / STOP કરવાનો ક્લાઉડ કમાન્ડ ---
+  // --- બટન અને વોઇસ કમાન્ડ વડે મોટર START / STOP કરવાનો ક્લાઉડ કમાન્ડ ---
   async function setMotor(state) {
     if (!activeSerial) { alert("પહેલા ડિવાઇસ પસંદ કરો!"); return; }
+
+    var statusEl = document.getElementById('motorStatus');
+    var isAlreadyStopped = statusEl && statusEl.innerText.includes('STOPPED');
+    var isAlreadyRunning = statusEl && statusEl.innerText.includes('RUNNING');
+
+    // જો મોટર પહેલેથી જ બંધ હોય અને કોઈ OFF કરવાનો પ્રયત્ન કરે
+    if (!state && isAlreadyStopped) {
+      alert("ℹ️ મોટર પહેલેથી જ બંધ (OFF) છે! સ્ટોપ રીલે કામ નહીં કરે.");
+      return;
+    }
+
+    // જો મોટર પહેલેથી જ ચાલુ હોય અને કોઈ ફરી START કરવાનો પ્રયત્ન કરે
+    if (state && isAlreadyRunning) {
+      alert("ℹ️ મોટર પહેલેથી જ ચાલુ (RUNNING) છે!");
+      return;
+    }
+
     var cmd = state ? "START" : "STOP";
     try {
       await fetch(FIREBASE_URL + "/devices/" + activeSerial + "/cmd.json", {
@@ -948,9 +973,9 @@
     function toggleTimerBox() {
       var isChecked = document.getElementById('timerEn').checked;
       document.getElementById('timerInputsBox').style.display = isChecked ? 'block' : 'none';
-    }
+    } 
 
-// --- વોઈસ કમાન્ડ નામ Firebase અને ESP32 માં સેવ કરવું ---
+     // --- વોઈસ કમાન્ડ નામ Firebase અને ESP32 માં સેવ કરવું ---
   async function saveVoiceNameCloud() {
     if (!activeSerial) { alert("પહેલા ડિવાઇસ પસંદ કરો!"); return; }
     var vName = document.getElementById('voiceNameInput').value.trim().toLowerCase();
@@ -963,9 +988,9 @@
       });
       alert("✅ વોઈસ કમાન્ડ નામ સફળતાપૂર્વક ક્લાઉડ અને ESP32 માં સેવ થઈ ગયું: " + vName);
     } catch (e) { alert("❌ સેવ કરવામાં ભૂલ આવી!"); }
-  }
+  } 
 
-   // --- 🎤 BROWSER SPEECH RECOGNITION (ગુજરાતી, હિન્દી & ENGLISH સપોર્ટ સાથે) ---
+  // --- 🎤 BROWSER SPEECH RECOGNITION (લાઇવ બોલેલા શબ્દો દેખાડવા સાથે) ---
   function startVoiceControl() {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
       alert("⚠️ તમારું બ્રાઉઝર વોઈસ કમાન્ડ સપોર્ટ કરતું નથી! કૃપા કરીને Google Chrome વાપરો.");
@@ -975,29 +1000,40 @@
     var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     var recognition = new SpeechRecognition();
 
-    // ડ્રોપડાઉનમાંથી પસંદ કરેલી ભાષા (ગુજરાતી / हिन्दी / English) સેટ થશે
     var langSelect = document.getElementById('voiceLangSelect');
     recognition.lang = langSelect ? langSelect.value : 'gu-IN';
-    recognition.interimResults = false;
+    recognition.interimResults = true; // લાઈવ બોલતા જ શબ્દો સ્ક્રીન પર લખાશે
     recognition.maxAlternatives = 1;
 
     var micBtn = document.getElementById('micBtn');
     var micText = document.getElementById('micText');
+    var spokenBox = document.getElementById('spokenTextDisplay');
+    var heardEl = document.getElementById('heardWord');
+
+    // બોલતી વખતે ડિસ્પ્લે બોક્સ ખુલી જશે
+    if (spokenBox) spokenBox.style.display = 'block';
+    if (heardEl) heardEl.innerText = "સાંભળી રહ્યું છે... બોલો...";
 
     micBtn.style.background = "linear-gradient(135deg, #ff9800, #f57c00)";
-    if (recognition.lang === 'gu-IN') {
-      micText.innerText = "સાંભળી રહ્યું છે... બોલો (જેમ કે 'મોટર ચાલુ' / 'મોટર બંધ')...";
-    } else if (recognition.lang === 'hi-IN') {
-      micText.innerText = "सुन रहा है... बोलिए (जैसे 'मोटर चालू' / 'मोटर बंद')...";
-    } else {
-      micText.innerText = "Listening... Speak (e.g. 'motor on' / 'motor off')...";
-    }
+    micText.innerText = "Listening... (બોલી રહ્યા છો)...";
 
     recognition.start();
 
     recognition.onresult = function(event) {
-      var speechResult = event.results[0][0].transcript.toLowerCase().trim();
-      console.log("🎤 Voice Heard: " + speechResult);
+      // આખું બોલાયેલું વાક્ય એકસાથે જોડશે (ટુકડા નહીં થાય)
+      var speechResult = '';
+      for (var i = 0; i < event.results.length; ++i) {
+        speechResult += event.results[i][0].transcript;
+      }
+      
+      // જે બોલ્યા તે શબ્દ બટનની નીચે લાઈવ લખાશે
+      if (heardEl) heardEl.innerText = '"' + speechResult.trim() + '"';
+
+      // માત્ર વાક્ય પૂરું બોલાઈ ગયા પછી જ કમાન્ડ ચેક કરશે
+      if (!event.results[event.results.length - 1].isFinal) return;
+
+      var cleanSpeech = speechResult.toLowerCase().trim();
+      console.log("🎤 Final Voice Heard: " + cleanSpeech);
 
       micBtn.style.background = "linear-gradient(135deg, #00bcd4, #2196f3)";
       micText.innerText = "VOICE CONTROL (બોલીને ચાલુ/બંધ કરો)";
@@ -1005,39 +1041,37 @@
       var triggerName = (document.getElementById('voiceNameInput') ? document.getElementById('voiceNameInput').value.trim().toLowerCase() : "motor");
       if (!triggerName) triggerName = "motor";
 
-      // ૧. નામ મેચિંગ (English, ગુજરાતી અને हिन्दी ત્રણેયમાં નામ ચેક કરશે)
-      var isNameSpoken = speechResult.includes(triggerName) || 
-                         (triggerName === 'motor' && (speechResult.includes('મોટર') || speechResult.includes('मोटर')));
+      // ૧. નામ મેચિંગ (English, ગુજરાતી અને હિન્દી)
+      var isNameSpoken = cleanSpeech.includes(triggerName) || 
+                         (triggerName === 'motor' && (cleanSpeech.includes('મોટર') || cleanSpeech.includes('मोटर')));
 
-      // ૨. મોટર ચાલુ (ON) કમાન્ડ્સ (English / ગુજરાતી / हिन्दी)
-      var isOnSpoken = speechResult.includes('on') || speechResult.includes('start') || speechResult.includes('chalu') || 
-                       speechResult.includes('shuru') || speechResult.includes('suru') ||
-                       speechResult.includes('ચાલુ') || speechResult.includes('શરૂ') || speechResult.includes('ઓન') || speechResult.includes('સ્ટાર્ટ') ||
-                       speechResult.includes('चालू') || speechResult.includes('शुरू') || speechResult.includes('ऑन') || speechResult.includes('स्टार्ट');
+      // ૨. મોટર ચાલુ (ON) કમાન્ડ્સ
+      var isOnSpoken = cleanSpeech.includes('on') || cleanSpeech.includes('start') || cleanSpeech.includes('chalu') || 
+                       cleanSpeech.includes('shuru') || cleanSpeech.includes('suru') ||
+                       cleanSpeech.includes('ચાલુ') || cleanSpeech.includes('શરૂ') || cleanSpeech.includes('ઓન') || cleanSpeech.includes('સ્ટાર્ટ') ||
+                       cleanSpeech.includes('चालू') || cleanSpeech.includes('शुरू') || cleanSpeech.includes('ऑन') || cleanSpeech.includes('स्टार्ट');
 
-      // ૩. મોટર બંધ (OFF) કમાન્ડ્સ (English / ગુજરાતી / हिन्दी)
-      var isOffSpoken = speechResult.includes('off') || speechResult.includes('stop') || speechResult.includes('band') || speechResult.includes('bandh') ||
-                        speechResult.includes('બંધ') || speechResult.includes('ઓફ') || speechResult.includes('સ્ટોપ') ||
-                        speechResult.includes('बंद') || speechResult.includes('ऑफ') || speechResult.includes('स्टॉप');
+      // ૩. મોટર બંધ (OFF) કમાન્ડ્સ
+      var isOffSpoken = cleanSpeech.includes('off') || cleanSpeech.includes('stop') || cleanSpeech.includes('band') || cleanSpeech.includes('bandh') ||
+                        cleanSpeech.includes('બંધ') || cleanSpeech.includes('ઓફ') || cleanSpeech.includes('સ્ટોપ') ||
+                        cleanSpeech.includes('बंद') || cleanSpeech.includes('ऑफ') || cleanSpeech.includes('स्टॉप');
 
       // --- મોટર START શરત ---
-      if ((isNameSpoken && isOnSpoken) || (!triggerName && isOnSpoken) || (isOnSpoken && !isOffSpoken && (speechResult.includes('ચાલુ') || speechResult.includes('શરૂ') || speechResult.includes('चालू')))) {
+      if ((isNameSpoken && isOnSpoken) || (!triggerName && isOnSpoken) || (isOnSpoken && !isOffSpoken && (cleanSpeech.includes('ચાલુ') || cleanSpeech.includes('શરૂ') || cleanSpeech.includes('चालू')))) {
         setMotor(true);
-        alert("🟢 Voice Command Recognized: \"" + speechResult + "\"\n✅ મોટર ચાલુ થઈ ગઈ! (MOTOR STARTED)");
       } 
       // --- મોટર STOP શરત ---
-      else if ((isNameSpoken && isOffSpoken) || (!triggerName && isOffSpoken) || (isOffSpoken && !isOnSpoken && (speechResult.includes('બંધ') || speechResult.includes('बंद')))) {
+      else if ((isNameSpoken && isOffSpoken) || (!triggerName && isOffSpoken) || (isOffSpoken && !isOnSpoken && (cleanSpeech.includes('બંધ') || cleanSpeech.includes('बंद')))) {
         setMotor(false);
-        alert("🔴 Voice Command Recognized: \"" + speechResult + "\"\n🛑 મોટર બંધ થઈ ગઈ! (MOTOR STOPPED)");
       } else {
-        alert("❓ સમજાણું નહીં: \"" + speechResult + "\"\nકૃપા કરીને સ્પષ્ટ બોલો, દા.ત. '" + triggerName + " on' અથવા '" + (triggerName === 'motor' ? 'મોટર' : triggerName) + " ચાલુ'.");
+        alert("❓ સમજાણું નહીં: \"" + speechResult + "\"\nકૃપા કરીને સ્પષ્ટ બોલો (જેમ કે: '" + triggerName + " on' અથવા '" + (triggerName === 'motor' ? 'મોટર' : triggerName) + " ચાલુ').");
       }
     };
 
     recognition.onerror = function(event) {
       micBtn.style.background = "linear-gradient(135deg, #00bcd4, #2196f3)";
       micText.innerText = "VOICE CONTROL (બોલીને ચાલુ/બંધ કરો)";
-      alert("❌ માઈક અવાજ પકડી શક્યું નહીં. ફરી બોલવાનો પ્રયત્ન કરો.");
+      if (heardEl) heardEl.innerText = "❌ અવાજ પકડાયો નહીં!";
     };
 
     recognition.onspeechend = function() {
