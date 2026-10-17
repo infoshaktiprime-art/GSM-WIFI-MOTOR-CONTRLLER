@@ -96,7 +96,20 @@
         <input type="text" id="inputName" placeholder="નામ (દા.ત. વાડી મોટર)" style="flex:1;min-width:130px;padding:8px;background:#252632;color:#fff;border:1px solid #555;border-radius:6px;font-size:13px;">
         <button type="button" onclick="saveNewDevice()" style="padding:8px 15px;background:#00bcd4;color:#000;font-weight:bold;border:none;border-radius:6px;cursor:pointer;">➕ Add / Save</button>
       </div> 
-      <div id="cloudStatus" style="font-size:12px;color:#ffb800;text-align:center;margin:8px 0;font-weight:bold;">⏳ Cloud Connecting...</div>
+      <!-- નવું ડિવાઇસ Serial Number થી ઉમેરવા માટે -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+        <input type="text" id="inputSerial" placeholder="Serial Key (VTX900-A1B2C3D4E5F6)" style="flex:1;min-width:150px;padding:8px;background:#252632;color:#fff;border:1px solid #555;border-radius:6px;font-size:13px;">
+        <input type="text" id="inputName" placeholder="નામ (દા.ત. વાડી મોટર)" style="flex:1;min-width:110px;padding:8px;background:#252632;color:#fff;border:1px solid #555;border-radius:6px;font-size:13px;">
+        <input type="password" id="inputPass" placeholder="ડિવાઇસ પાસવર્ડ" style="flex:1;min-width:100px;padding:8px;background:#252632;color:#fff;border:1px solid #555;border-radius:6px;font-size:13px;">
+        <button type="button" onclick="saveNewDevice()" style="padding:8px 15px;background:#00bcd4;color:#000;font-weight:bold;border:none;border-radius:6px;cursor:pointer;">➕ Add / Save</button>
+      </div> 
+
+      <!-- પાસવર્ડ બદલવા માટેનું સેક્શન -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:#131d27;padding:8px;border-radius:6px;border:1px solid #333;">
+        <span style="font-size:12px;color:#ffb800;font-weight:bold;">🔑 Change Password:</span>
+        <input type="password" id="newDevPass" placeholder="નવો પાસવર્ડ નાખો" style="flex:1;min-width:130px;padding:6px;background:#252632;color:#fff;border:1px solid #555;border-radius:6px;font-size:12px;">
+        <button type="button" onclick="changeDevicePassword()" style="padding:6px 12px;background:#ff9800;color:#000;font-weight:bold;border:none;border-radius:6px;cursor:pointer;font-size:12px;">💾 Update Password</button>
+      </div>
 
       <!-- 📋 SAVED DEVICES & LIVE IP ટેબલ (તમારા ફોટા મુજબનું ડિઝાઇન) -->
       <div style="background:#131d27;border:1px solid #00bcd4;border-radius:10px;padding:12px;margin-top:12px;box-shadow:inset 0 0 10px rgba(0,188,212,0.15);">
@@ -358,7 +371,7 @@
       <div style="color:#e0e0e0;font-size:15px;font-weight:700;margin-bottom:12px;text-align:center;">🔒 સેન્સર કેલિબ્રેશન (CALIBRATION)</div>
 
       <div style="display:flex;gap:8px;justify-content:space-between;align-items:center;background:#252632;padding:8px;border-radius:8px;">
-        <input type="password" id="calPass" placeholder="PASSWORD (દા.ત. 12345)" style="flex:1;padding:8px;background:#171821;color:#fff;border:1px solid #ffeb3b;border-radius:6px;text-align:center;font-size:15px;">
+        <input type="password" id="calPass" placeholder="PASSWORD " style="flex:1;padding:8px;background:#171821;color:#fff;border:1px solid #ffeb3b;border-radius:6px;text-align:center;font-size:15px;">
         <button type="button" onclick="checkUnlock()" style="padding:8px 16px;background:#ffeb3b;color:#000;font-weight:bold;border:none;border-radius:6px;cursor:pointer;">🔓 OK</button>
       </div>
 
@@ -528,26 +541,57 @@
     var s = document.getElementById('inputSerial').value.trim().toUpperCase();
     var n = document.getElementById('inputName').value.trim();
     if (!s) { alert("કૃપા કરીને Serial Key દાખલ કરો!"); return; }
-    if (!n) n = s;
+    if (!n) n = s; 
 
-    // જો પહેલેથી હોય તો નામ અપડેટ કરો, નહીં તો નવું ઉમેરો (૧૦૦ સુધી ઉમેરી શકાશે)
+    var p = document.getElementById('inputPass').value.trim();
+    if (!p) { alert("કૃપા કરીને ડિવાઇસ પાસવર્ડ દાખલ કરો!"); return; }
+
     var found = false;
     for (var i = 0; i < deviceList.length; i++) {
       if (deviceList[i].serial === s) {
         deviceList[i].name = n;
+        deviceList[i].pass = p;
         found = true;
         break;
       }
     }
     if (!found) {
-      deviceList.push({ serial: s, name: n });
+      deviceList.push({ serial: s, name: n, pass: p });
     }
     activeSerial = s;
     saveToStorage();
     document.getElementById('inputSerial').value = '';
     document.getElementById('inputName').value = '';
-    alert("✅ ડિવાઇસ સફળતાપૂર્વક લિંક થઈ ગયું!");
+    document.getElementById('inputPass').value = '';
+    alert("✅ ડિવાઇસ અને પાસવર્ડ સફળતાપૂર્વક સેવ થઈ ગયા!");
     fetchFirebaseData();
+  }
+
+  // પાસવર્ડ ક્લાઉડ પર અપડેટ કરવા માટેનું ફંક્શન
+  async function changeDevicePassword() {
+    if (!activeSerial) { alert("પહેલા ડિવાઇસ પસંદ કરો!"); return; }
+    var newP = document.getElementById('newDevPass').value.trim();
+    if (!newP) { alert("કૃપા કરીને નવો પાસવર્ડ દાખલ કરો!"); return; }
+
+    try {
+      await fetch(FIREBASE_URL + "/devices/" + activeSerial + "/cmd.json", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "SET_DEV_PASS", pass: newP, timeStamp: Date.now() })
+      });
+      
+      for (var i = 0; i < deviceList.length; i++) {
+        if (deviceList[i].serial === activeSerial) {
+          deviceList[i].pass = newP;
+          break;
+        }
+      }
+      saveToStorage();
+      document.getElementById('newDevPass').value = '';
+      alert("✅ ડિવાઇસનો પાસવર્ડ સફળતાપૂર્વક બદલાઈ ગયો!");
+    } catch (e) {
+      alert("❌ પાસવર્ડ અપડેટ કરવામાં ભૂલ આવી!");
+    }
   }
 
   function deleteCurrentDevice() {
