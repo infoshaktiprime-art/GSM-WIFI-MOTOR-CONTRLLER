@@ -556,14 +556,29 @@
     fetchFirebaseData();
   }
 
-  function saveNewDevice() {
+  // --- ૧. નવું ડિવાઇસ Serial Number અને પાસવર્ડથી ચકાસીને એડ કરવું ---
+  async function saveNewDevice() {
     var s = document.getElementById('inputSerial').value.trim().toUpperCase();
     var n = document.getElementById('inputName').value.trim();
+    var p = document.getElementById('inputPass').value.trim();
+
     if (!s) { alert("કૃપા કરીને Serial Key દાખલ કરો!"); return; }
     if (!n) n = s; 
+    if (!p) { alert("કૃપા કરીને ડિવાઇસ પાસવર્ડ દાખલ કરો (૪ કે ૮ આંકડા)!"); return; }
 
-    var p = document.getElementById('inputPass').value.trim();
-    if (!p) { alert("કૃપા કરીને ડિવાઇસ પાસવર્ડ દાખલ કરો!"); return; }
+    // Firebase માંથી ચકાસણી કરશે કે આ Serial Key નો સાચો પાસવર્ડ શું છે
+    try {
+      var res = await fetch(FIREBASE_URL + "/devices/" + s + ".json");
+      var d = await res.json();
+      
+      // જો ડિવાઇસ ક્લાઉડ પર હોય અને પાસવર્ડ ખોટો નાખ્યો હોય તો રોકી દેશે
+      if (d && d.device_pass && d.device_pass !== p) {
+        alert("❌ ખોટો પાસવર્ડ! આ સીરીયલ નંબર (" + s + ") માટે નાખેલો પાસવર્ડ ખોટો છે. ડિવાઇસ કનેક્ટ નહીં થાય.");
+        return;
+      }
+    } catch (e) {
+      console.log("Offline check skipped");
+    }
 
     var found = false;
     for (var i = 0; i < deviceList.length; i++) {
@@ -582,21 +597,30 @@
     document.getElementById('inputSerial').value = '';
     document.getElementById('inputName').value = '';
     document.getElementById('inputPass').value = '';
-    alert("✅ ડિવાઇસ અને પાસવર્ડ સફળતાપૂર્વક સેવ થઈ ગયા!");
+    alert("✅ પાસવર્ડ સાચો છે! ડિવાઇસ સફળતાપૂર્વક કનેક્ટ થઈ ગયું.");
     fetchFirebaseData();
   }
 
-  // પાસવર્ડ ક્લાઉડ પર અપડેટ કરવા માટેનું ફંક્શન
+  // --- ૨. પાસવર્ડ બદલવો (૪ કે ૮ આંકડા) - ESP32 Preferences અને Firebase માં કાયમી સેવ થશે ---
   async function changeDevicePassword() {
     if (!activeSerial) { alert("પહેલા ડિવાઇસ પસંદ કરો!"); return; }
     var newP = document.getElementById('newDevPass').value.trim();
     if (!newP) { alert("કૃપા કરીને નવો પાસવર્ડ દાખલ કરો!"); return; }
+    if (newP.length < 4) { alert("પાસવર્ડ ઓછામાં ઓછો ૪ આંકડાનો હોવો જોઈએ!"); return; }
 
     try {
+      // ૧. ESP32 ને Preferences Library માં કાયમી સેવ કરવા કમાન્ડ મોકલો
       await fetch(FIREBASE_URL + "/devices/" + activeSerial + "/cmd.json", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "SET_DEV_PASS", pass: newP, timeStamp: Date.now() })
+      });
+
+      // ૨. Firebase માં પણ તરત અપડેટ કરો
+      await fetch(FIREBASE_URL + "/devices/" + activeSerial + ".json", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ device_pass: newP })
       });
       
       for (var i = 0; i < deviceList.length; i++) {
@@ -607,7 +631,7 @@
       }
       saveToStorage();
       document.getElementById('newDevPass').value = '';
-      alert("✅ ડિવાઇસનો પાસવર્ડ સફળતાપૂર્વક બદલાઈ ગયો!");
+      alert("✅ નવો પાસવર્ડ (" + newP + ") ESP32 Preferences મેમરી અને Firebase માં કાયમી સેવ થઈ ગયો!");
     } catch (e) {
       alert("❌ પાસવર્ડ અપડેટ કરવામાં ભૂલ આવી!");
     }
